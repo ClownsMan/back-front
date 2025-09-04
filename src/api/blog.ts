@@ -68,3 +68,45 @@ export const delTags = (data) => {
     });
 };
 /** 标签end **/
+/** 文章start **/
+// 文章分页
+export const getPost = (params) => {
+    return request({
+        url: '/api/posts/manage',
+        method: 'get',
+        params
+    });
+};
+// 文章详情
+export const getPostItem = (data) => {
+    return request({
+        url: '/api/posts/detail',
+        method: 'post',
+        data
+    });
+};
+// 新增文章
+export const addPost = (data) => {
+    return request({
+        url: '/api/posts/add',
+        method: 'post',
+        data
+    });
+};
+// 更新文章
+export const updatePost = (data) => {
+    return request({
+        url: `/api/posts/update`,
+        method: 'post',
+        data
+    });
+};
+// 删除文章
+export const delPost = (data) => {
+    return request({
+        url: `/api/posts/delete`,
+        method: 'post',
+        data
+    });
+};
+/** 文章end **/

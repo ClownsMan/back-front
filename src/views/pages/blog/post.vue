@@ -6,18 +6,11 @@
       <TableCustom :columns="columns" :tableData="tableData" :total="page.total" :viewFunc="handleView"
                    :delFunc="handleDelete" :page-change="changePage" :editFunc="handleEdit">
         <template #toolbarBtn>
-          <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+          <el-button type="warning" :icon="CirclePlusFilled" @click="addPost">新增</el-button>
         </template>
       </TableCustom>
 
     </div>
-    <el-dialog :title="isEdit ? '编辑' : '新增'" v-model="visible" width="700px" destroy-on-close
-               :close-on-click-modal="false" @close="closeDialog">
-      <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData" />
-    </el-dialog>
-    <el-dialog title="查看详情" v-model="visible1" width="700px" destroy-on-close>
-      <TableDetail :data="viewData"></TableDetail>
-    </el-dialog>
   </div>
 </template>
 
@@ -30,7 +23,8 @@ import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
 import { FormOption, FormOptionList } from '@/types/form-option';
-import {addTags, delTags, getTags, updateTags} from "@/api/blog";
+import {addPost, delPost, getPost } from "@/api/blog";
+import router from "@/router";
 
 // 查询相关
 const query = reactive({
@@ -59,9 +53,16 @@ const page = reactive({
 })
 const tableData = ref<User[]>([]);
 const getData = async () => {
-  const res = await getTags()
-  tableData.value = res.data;
-  page.total = res.data.length;
+  const res = await getPost()
+  tableData.value = (res.data.data || []).map(item => {
+    return {
+      ...item,
+      categoryName: item.category.name,
+      tagText: item.tags.map(tag => tag.name).join(','),
+      isTop: item.is_top ? '是' : '否',
+    };
+  });
+  page.total = res.data.total;
 };
 getData();
 
@@ -70,82 +71,32 @@ const changePage = (val: number) => {
   getData();
 };
 
+const addPost = () => {
+  router.push(`/blog/post/edit/-1`);
+};
+
 // 新增/编辑弹窗相关
 let options = ref<FormOption>({
   labelWidth: '100px',
   span: 12,
   list: [
-    { type: 'input', label: '标签', prop: 'name', required: true }
+    { type: 'input', label: '文章标题', prop: 'name', required: true }
   ]
 })
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref({});
 const handleEdit = (row: User) => {
-  rowData.value = { ...row };
-  isEdit.value = true;
-  visible.value = true;
-};
-const updateData = (data) => {
-  const _p = { ...data}
-  if (isEdit.value) {
-    _p.id = rowData.value.id;
-    updateTags(_p).then((res) => {
-      if (res.code === 200) {
-        ElMessage.success('修改成功');
-        closeDialog();
-        getData();
-      }
-    });
-  } else {
-    addTags(_p).then((res) => {
-      if (res.code === 200) {
-        ElMessage.success('新增成功');
-        closeDialog();
-        getData();
-      }
-    });
-  }
-
+  router.push(`/blog/post/edit/${row.id}`);
 };
 
-const closeDialog = () => {
-  visible.value = false;
-  isEdit.value = false;
-};
-
-// 查看详情弹窗相关
-const visible1 = ref(false);
-const viewData = ref({
-  row: {},
-  list: []
-});
 const handleView = (row: User) => {
-  viewData.value.row = { ...row }
-  viewData.value.list = [
-    // {
-    //   prop: 'id',
-    //   label: '用户ID',
-    // },
-    {
-      prop: 'name',
-      label: '分类',
-    },
-    {
-      prop: 'description',
-      label: '备注',
-    },
-    {
-      prop: 'createdAt',
-      label: '创建日期',
-    },
-  ]
-  visible1.value = true;
+  router.push(`/blog/post/edit/${row.id}`);
 };
 
 // 删除相关
 const handleDelete = (row: User) => {
-  delTags({ id: row.id }).then((res) => {
+  delPost({ id: row.id }).then((res) => {
     if (res.code === 200) {
       ElMessage.success('删除成功');
       getData();

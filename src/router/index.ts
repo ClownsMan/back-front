@@ -42,6 +42,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "theme" */ '../views/pages/blog/post.vue'),
             },
             {
+                path: '/blog/post/edit/:id',
+                name: 'blogPostEdit',
+                meta: {
+                    title: '文章编辑',
+                    permiss: '2',
+                },
+                component: () => import(/* webpackChunkName: "theme" */ '../views/pages/blog/components/addPost.vue'),
+            },
+            {
                 path: '/blog/tag',
                 name: 'blogTag',
                 meta: {
