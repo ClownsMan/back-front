@@ -6,6 +6,7 @@ const headers = {
     'Content-Type': 'application/json',
 };
 const _token = localStorage.getItem('token');
+
 if (_token) {
     headers['Authorization'] = `Bearer ${_token}`; // Add token to headers if available
 }

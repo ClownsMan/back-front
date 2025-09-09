@@ -3,11 +3,13 @@ import {onMounted, reactive, ref} from 'vue';
 import MdEditor from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import type {FormProps, FormRules} from "element-plus";
-import {addPost, updatePost, getPostItem, getCategories, getTags} from "@/api/blog";
+import {addPost, updatePost, getPostItem, getCategories, getTags, uploadImg} from "@/api/blog";
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const formRef = ref();
+const fileList = ref([])
+const mainList = ref([])
 const rules: FormRules = {
   title: [{ required: true, message: '请输入表单名称', trigger: 'blur' }],
 };
@@ -23,6 +25,7 @@ const text = ref('Hello Editor!');
 const categoryList = ref([])
 const tagList = ref([])
 const objId = ref('-1');
+const token = localStorage.getItem('token')
 
 const onUploadImg = (files: any) => {
   console.log(files);
@@ -32,6 +35,18 @@ const getPostDetail = (id) => {
   getPostItem({ id }).then(res => {
     if (res.code === 200) {
       const data = res.data;
+      fileList.value = data.cover_url ? [
+        {
+          name: '封面图',
+          url: data.cover_url
+        }
+      ] : []
+      mainList.value = data.main_url ? [
+        {
+          name: '主图',
+          url: data.main_url
+        }
+      ] : []
       if (data.tags && data.tags.length > 0) {
         data.tag_ids = data.tags.map(item => item.id)
       }
@@ -93,6 +108,57 @@ const back = () => {
   router.go(-1);
 }
 
+// 上传成功处理函数
+const handleCoverSuccess = (res, file) => {
+  if (res.code === 200) {
+    form.value.cover_url = res.data.url
+    ElMessage.success('封面图上传成功')
+  } else {
+    ElMessage.error('封面图上传失败: ' + res.message)
+  }
+}
+
+// 上传错误处理函数
+const handleCoverError = (err) => {
+  ElMessage.error('封面图上传异常')
+  console.error('Upload error:', err)
+}
+
+// 上传成功处理函数
+const handleMainSuccess = (res, file) => {
+  if (res.code === 200) {
+    form.value.main_url = res.data.url
+    ElMessage.success('主图上传成功')
+  } else {
+    ElMessage.error('主图上传失败: ' + res.message)
+  }
+}
+
+// 上传错误处理函数
+const handleMainError = (err) => {
+  ElMessage.error('主图上传异常')
+  console.error('Upload error:', err)
+}
+
+// 上传前的校验函数
+const beforeCoverUpload = (file) => {
+  // 检查文件类型
+  const isImage = file.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件')
+    return false
+  }
+  
+  // 检查文件大小（限制10MB，与后端保持一致）
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    ElMessage.error('文件大小不能超过10MB')
+    return false
+  }
+  
+  return true
+}
+
 onMounted(() => {
   objId.value = router.currentRoute.value.params.id
   if (objId.value !== '-1') {
@@ -126,6 +192,48 @@ onMounted(() => {
         <el-option key="发布" label="发布" value="published"></el-option>
       </el-select>
     </el-form-item>
+    <el-form-item label="封面图" prop="coverImg" class="form_item w50">
+       <el-upload
+        v-model:file-list="fileList"
+        :auto-upload="true"
+        action="/api/api/files/single"
+        :on-success="handleCoverSuccess"
+        :on-error="handleCoverError"
+        limit="1"
+        accept="image/*"
+        :before-upload="beforeCoverUpload"
+        :headers="{ 'Authorization': `Bearer ${token}` }"
+        list-type="picture-card"
+      >
+        <template #trigger>
+          <div class="flex items-center" style="align-items: center;">
+            <el-icon class="mr-[10rpx]"><Plus /></el-icon>
+            <span>上传图片</span>
+          </div>
+        </template>
+      </el-upload>
+    </el-form-item>
+    <el-form-item label="主图" prop="mainImg" class="form_item w50">
+       <el-upload
+        v-model:file-list="mainList"
+        :auto-upload="true"
+        action="/api/api/files/single"
+        :on-success="handleMainSuccess"
+        :on-error="handleMainError"
+        limit="1"
+        accept="image/*"
+        :before-upload="beforeCoverUpload"
+        :headers="{ 'Authorization': `Bearer ${token}` }"
+        list-type="picture-card"
+      >
+        <template #trigger>
+          <div class="flex items-center" style="align-items: center;">
+            <el-icon class="mr-[10px]"><Plus /></el-icon>
+            <span>上传图片</span>
+          </div>
+        </template>
+      </el-upload>
+    </el-form-item>
     <el-form-item label="备注" prop="remark" class="form_item">
       <el-input type="textarea" rows="3" v-model="form.remark"></el-input>
     </el-form-item>
@@ -139,6 +247,9 @@ onMounted(() => {
   width: 100%;
   &.w30 {
     width: 30%;
+  }
+  &.w50 {
+    width: 50%;
   }
 }
 .flex {

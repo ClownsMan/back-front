@@ -110,3 +110,11 @@ export const delPost = (data) => {
     });
 };
 /** 文章end **/
+/** 上传图片 **/ 
+export const uploadImg = (data) => {
+    return request({
+        url: `/api/files/single`,
+        method: 'post',
+        data
+    });
+}
