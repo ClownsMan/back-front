@@ -53,7 +53,11 @@ const page = reactive({
 })
 const tableData = ref<User[]>([]);
 const getData = async () => {
-  const res = await getPost()
+  const res = await getPost({
+    page: page.index,
+    size: page.size,
+    name: query.name,
+  })
   tableData.value = (res.data.data || []).map(item => {
     return {
       ...item,

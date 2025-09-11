@@ -5,6 +5,7 @@ import 'md-editor-v3/lib/style.css';
 import type {FormProps, FormRules} from "element-plus";
 import {addPost, updatePost, getPostItem, getCategories, getTags, uploadImg} from "@/api/blog";
 import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 
 const router = useRouter();
 const formRef = ref();
@@ -18,6 +19,8 @@ const form = ref({
   category_id: '',
   tag_ids: [],
   status: '0',
+  cover_url: '',
+  main_url: '',
   remark: ''
 });
 const labelPosition = ref<FormProps['labelPosition']>('right')
@@ -32,7 +35,7 @@ const onUploadImg = (files: any) => {
 };
 
 const getPostDetail = (id) => {
-  getPostItem({ id }).then(res => {
+  getPostItem({ id }).then((res:any) => {
     if (res.code === 200) {
       const data = res.data;
       fileList.value = data.cover_url ? [
@@ -64,7 +67,7 @@ const getOptions = () => {
 }
 // 获取分类列表
 const getCategoryList = () => {
-  return getCategories().then(res => {
+  return getCategories({}).then((res:any) => {
     if (res.code === 200) {
       categoryList.value = res.data;
     }
@@ -72,7 +75,7 @@ const getCategoryList = () => {
 }
 // 获取标签列表
 const getTagList = () => {
-  return getTags().then(res => {
+  return getTags({}).then((res:any) => {
     if (res.code === 200) {
       tagList.value = res.data;
     }
@@ -82,19 +85,19 @@ const getTagList = () => {
 const savePost = () => {
   formRef.value.validate(valid => {
     if (valid) {
-      const _p = {
+      const _p:any = {
         ...form.value,
         content: text.value
       }
       if (objId.value !== '-1') {
         _p.id = objId.value
-        updatePost(_p).then(res => {
+        updatePost(_p).then((res:any) => {
           if (res.code === 200) {
             ElMessage.success('保存成功');
           }
         })
       } else {
-        addPost(_p).then(res => {
+        addPost(_p).then((res:any) => {
           if (res.code === 200) {
             ElMessage.success('保存成功');
             objId.value = res.data.id
@@ -160,7 +163,7 @@ const beforeCoverUpload = (file) => {
 }
 
 onMounted(() => {
-  objId.value = router.currentRoute.value.params.id
+  objId.value = typeof router.currentRoute.value.params.id === 'string' ? router.currentRoute.value.params.id : '-1'
   if (objId.value !== '-1') {
     getPostDetail(objId.value)
   }
@@ -196,7 +199,7 @@ onMounted(() => {
        <el-upload
         v-model:file-list="fileList"
         :auto-upload="true"
-        action="/api/api/files/single"
+        action="/api/files/single"
         :on-success="handleCoverSuccess"
         :on-error="handleCoverError"
         limit="1"
@@ -217,7 +220,7 @@ onMounted(() => {
        <el-upload
         v-model:file-list="mainList"
         :auto-upload="true"
-        action="/api/api/files/single"
+        action="/api/files/single"
         :on-success="handleMainSuccess"
         :on-error="handleMainError"
         limit="1"
@@ -263,6 +266,6 @@ onMounted(() => {
   height: 500px;
 }
 .operator {
-  //background: white;
+  
 }
 </style>

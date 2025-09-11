@@ -75,8 +75,8 @@ const rules: FormRules = options.list.map(item => {
 const formRef = ref<FormInstance>();
 const saveEdit = (formEl: FormInstance | undefined) => {
 	if (!formEl) return;
-	formEl.validate(valid => {
-		if (!valid) return false;
+	formEl.validate((valid) => {
+		if (!valid) return;
 		update(form.value);
 	});
 };

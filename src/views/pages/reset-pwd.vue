@@ -46,9 +46,8 @@ const submitForm = (formEl: FormInstance | undefined) => {
     formEl.validate((valid: boolean) => {
         if (valid) {
             ElMessage.success('邮件已发送，请注意查收');
-        } else {
-            return false;
         }
+        // 移除返回 false，使回调函数返回 void 类型
     });
 };
 </script>

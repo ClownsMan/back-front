@@ -55,7 +55,7 @@ const page = reactive({
 })
 const tableData = ref<User[]>([]);
 const getData = async () => {
-  const res = await getTags()
+  const res = await getTags({})
   tableData.value = res.data;
   page.total = res.data.length;
 };
